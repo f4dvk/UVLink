@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:UVLink.ViewModels"
+        xmlns:views="using:UVLink.Views"
+        x:Class="UVLink.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="UVLink"
+        Width="1040" Height="760" MinWidth="860" MinHeight="640">
+        <views:MainView />
+</Window>

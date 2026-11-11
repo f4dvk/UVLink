@@ -1,0 +1,229 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:UVLink"
+             x:Class="UVLink.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <!-- palette "cockpit" -->
+        <Color x:Key="BgColor">#0A0E13</Color>
+        <Color x:Key="PanelColor">#111822</Color>
+        <Color x:Key="PanelBorderColor">#1F2E3C</Color>
+        <Color x:Key="CyanColor">#2FD1FF</Color>
+        <Color x:Key="MagentaColor">#FF3FA4</Color>
+        <Color x:Key="GreenColor">#39FF88</Color>
+        <Color x:Key="AmberColor">#FFB02E</Color>
+        <Color x:Key="RedColor">#FF4D4D</Color>
+        <Color x:Key="TextColor">#D6E2EC</Color>
+        <Color x:Key="DimColor">#6F8294</Color>
+        <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
+        <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
+        <SolidColorBrush x:Key="PanelBorderBrush" Color="{StaticResource PanelBorderColor}" />
+        <SolidColorBrush x:Key="CyanBrush" Color="{StaticResource CyanColor}" />
+        <SolidColorBrush x:Key="MagentaBrush" Color="{StaticResource MagentaColor}" />
+        <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource GreenColor}" />
+        <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource AmberColor}" />
+        <SolidColorBrush x:Key="RedBrush" Color="{StaticResource RedColor}" />
+        <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+        <SolidColorBrush x:Key="DimBrush" Color="{StaticResource DimColor}" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <Style Selector="Window">
+            <Setter Property="Background" Value="{StaticResource BgBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="TextBlock.dim">
+            <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+        <Style Selector="TextBlock.title">
+            <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LetterSpacing" Value="2" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.freq">
+            <Setter Property="FontFamily" Value="monospace" />
+            <Setter Property="FontSize" Value="34" />
+            <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 10 #602FD1FF)" />
+        </Style>
+        <Style Selector="TextBlock.freq.off">
+            <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+            <Setter Property="Effect" Value="{x:Null}" />
+        </Style>
+
+        <!-- jauge batterie (barre du haut) -->
+        <Style Selector="Border.batt">
+            <Setter Property="BorderBrush" Value="{StaticResource DimBrush}" /><Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="2" /><Setter Property="Padding" Value="1" />
+        </Style>
+        <Style Selector="Border.batt ProgressBar"><Setter Property="Foreground" Value="{StaticResource GreenBrush}" /></Style>
+        <Style Selector="Border.batt.low ProgressBar"><Setter Property="Foreground" Value="{StaticResource RedBrush}" /></Style>
+        <!-- cartes VFO -->
+        <Style Selector="Border.panel.vfo.rx"><Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" /></Style>
+        <Style Selector="Border.panel.vfo.tx"><Setter Property="BorderBrush" Value="{StaticResource MagentaBrush}" /></Style>
+        <Style Selector="Border.badge">
+            <Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="6,1" />
+            <Setter Property="Background" Value="#16304A" />
+        </Style>
+        <Style Selector="Border.badge TextBlock"><Setter Property="FontSize" Value="11" /><Setter Property="FontWeight" Value="Bold" /></Style>
+        <Style Selector="Border.badge.rx"><Setter Property="Background" Value="#1C4A2E" /></Style>
+        <Style Selector="Border.badge.rx TextBlock"><Setter Property="Foreground" Value="{StaticResource GreenBrush}" /></Style>
+        <Style Selector="Border.badge.tx"><Setter Property="Background" Value="#4A1C33" /></Style>
+        <Style Selector="Border.badge.tx TextBlock"><Setter Property="Foreground" Value="{StaticResource MagentaBrush}" /></Style>
+        <!-- pastilles de réglage (toucher = bascule / menu) -->
+        <Style Selector="Button.chip">
+            <Setter Property="Background" Value="#0F1B26" />
+            <Setter Property="BorderBrush" Value="#2A3F55" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="10,3" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="28" />
+        </Style>
+        <Style Selector="Button.chip:pointerover /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" /><Setter Property="Background" Value="#16304A" /></Style>
+        <Style Selector="Button.chip.on">
+            <Setter Property="Background" Value="#16304A" />
+            <Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+        </Style>
+        <Style Selector="Button.chip.on /template/ ContentPresenter"><Setter Property="Background" Value="#16304A" /><Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" /></Style>
+        <!-- bouton sans habillage (zone touchable) -->
+        <Style Selector="Button.bare">
+            <Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Button.bare:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+        <Style Selector="Border.panel">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PanelBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="Margin" Value="6" />
+            <Setter Property="BoxShadow" Value="0 0 18 0 #18000000" />
+        </Style>
+
+        <!-- voyants -->
+        <Style Selector="Border.led">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#1C2833" />
+            <Setter Property="BorderBrush" Value="#2A3A4A" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.led.green.lit">
+            <Setter Property="Background" Value="{StaticResource GreenBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 8 #39FF88)" />
+        </Style>
+        <Style Selector="Border.led.red.lit">
+            <Setter Property="Background" Value="{StaticResource RedBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource RedBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 8 #FF4D4D)" />
+        </Style>
+        <Style Selector="Border.led.cyan.lit">
+            <Setter Property="Background" Value="{StaticResource CyanBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 8 #2FD1FF)" />
+        </Style>
+        <Style Selector="Border.led.amber.lit">
+            <Setter Property="Background" Value="{StaticResource AmberBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AmberBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 8 #FFB02E)" />
+        </Style>
+
+        <!-- segments du S-mètre -->
+        <Style Selector="Border.seg">
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Background" Value="#182330" />
+        </Style>
+        <Style Selector="Border.seg.lit.g">
+            <Setter Property="Background" Value="{StaticResource GreenBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 6 #39FF88)" />
+        </Style>
+        <Style Selector="Border.seg.lit.a">
+            <Setter Property="Background" Value="{StaticResource AmberBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 6 #FFB02E)" />
+        </Style>
+        <Style Selector="Border.seg.lit.r">
+            <Setter Property="Background" Value="{StaticResource RedBrush}" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 6 #FF4D4D)" />
+        </Style>
+
+        <!-- boutons -->
+        <Style Selector="Button.neon">
+            <Setter Property="Background" Value="#0F1B26" />
+            <Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="14,6" />
+        </Style>
+        <Style Selector="Button.neon:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#16304A" />
+            <Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" />
+        </Style>
+        <Style Selector="Button.ptt">
+            <Setter Property="Width" Value="120" />
+            <Setter Property="Height" Value="120" />
+            <Setter Property="CornerRadius" Value="60" />
+            <Setter Property="Background" Value="#1A0F18" />
+            <Setter Property="BorderBrush" Value="{StaticResource MagentaBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Foreground" Value="{StaticResource MagentaBrush}" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Effect" Value="drop-shadow(0 0 14 #40FF3FA4)" />
+        </Style>
+        <Style Selector="Button.ptt:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource MagentaBrush}" />
+            <Setter Property="Foreground" Value="#0A0E13" />
+        </Style>
+        <Style Selector="Button.ptt.on /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource MagentaBrush}" />
+            <Setter Property="Foreground" Value="#0A0E13" />
+        </Style>
+        <Style Selector="Button.ptt:pointerover /template/ ContentPresenter">
+            <Setter Property="BorderBrush" Value="{StaticResource MagentaBrush}" />
+        </Style>
+        <Style Selector="Button.ptt:disabled">
+            <Setter Property="Opacity" Value="0.35" />
+        </Style>
+
+        <!-- mode étroit : rangée d'entêtes d'onglets masquée, le menu ≡ la remplace -->
+        <Style Selector="TabControl.menuonly /template/ ItemsPresenter#PART_ItemsPresenter">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="ListBox.log">
+            <Setter Property="Background" Value="#0B1016" />
+            <Setter Property="FontFamily" Value="monospace" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#8FB3C9" />
+        </Style>
+        <Style Selector="ListBox.log ListBoxItem">
+            <Setter Property="Padding" Value="6,1" />
+            <Setter Property="MinHeight" Value="18" />
+        </Style>
+    </Application.Styles>
+</Application>

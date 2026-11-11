@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- net8.0 = Linux (BlueZ direct) ; net8.0-windows10.0.19041.0 = Windows (WinRT via InTheHand).
+         dotnet build -f net8.0 sur Ubuntu, -f net8.0-windows10.0.19041.0 sur Windows. -->
+    <TargetFrameworks>net8.0;net8.0-windows10.0.19041.0</TargetFrameworks>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="InTheHand.BluetoothLE" />
+  </ItemGroup>
+
+  <!-- Linux seulement : BlueZ en direct + ALSA -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Linux.Bluetooth" />
+    <Compile Remove="NAudioDevice.cs" />
+  </ItemGroup>
+  <!-- Windows seulement : NAudio (WinMM) -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net8.0'">
+    <PackageReference Include="NAudio.WinMM" />
+    <Compile Remove="BlueZTransport.cs" />
+    <Compile Remove="AlsaAudio.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UVLink\UVLink.csproj" />
+  </ItemGroup>
+</Project>

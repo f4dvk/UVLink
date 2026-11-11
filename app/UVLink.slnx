@@ -1,0 +1,7 @@
+﻿<Solution>
+  <Project Path="UVLink.Android/UVLink.Android.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="UVLink.Desktop/UVLink.Desktop.csproj" />
+  <Project Path="UVLink/UVLink.csproj" />
+</Solution>

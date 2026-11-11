@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" Exclude="Assets\aprs-symbols-*.png;Assets\crash-plane.png;Assets\balloon.png" />
+    <!-- Icônes de la carte, incorporées pour Mapsui (embedded://UVLink.Assets.xxx.png) :
+         planches de symboles APRS hessu/aprs-symbols (CC BY-SA), avion en détresse
+         UXWing (libre), ballon dessiné pour le projet. -->
+    <EmbeddedResource Include="Assets\aprs-symbols-*.png" />
+    <EmbeddedResource Include="Assets\crash-plane.png" />
+    <EmbeddedResource Include="Assets\balloon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="InTheHand.BluetoothLE" />
+    <PackageReference Include="Mapsui.Avalonia" />
+  </ItemGroup>
+</Project>

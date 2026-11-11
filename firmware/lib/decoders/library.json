@@ -1,0 +1,15 @@
+{
+  "name": "decoders",
+  "version": "1.0.0",
+  "description": "Décodeurs portés tels quels de Sarsat_UV-K1-5_RP2040/rp2040/src (C portable, sans pico-sdk) : SARSAT 406 1G (trancheur F4EHY + dec406 moricef), APRS AFSK 1200 / AX.25 (JN1DFF pico_tnc), radiosondes RS41 / M10-M20 (radiosonde_auto_rx, GPL-3), SSTV Scottie 1, GPS NMEA. Ne pas modifier ici : corriger dans le projet RP2040 puis recopier.",
+  "build": {
+    "srcDir": ".",
+    "flags": [
+      "-DSARSAT_QUIET_DECODER=1",
+      "-DSARSAT_VERBOSE=0",
+      "-Wno-format",
+      "-Wno-unused",
+      "-Wno-stringop-truncation"
+    ]
+  }
+}

@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UVLink.ViewModels"
+             x:Class="UVLink.Views.VfoCardView"
+             x:DataType="vm:VfoCard">
+    <!-- carte VFO : état du poste + réglages, voir VfoCard -->
+    <UserControl.Styles>
+        <Style Selector="TextBox.active"><Setter Property="BorderBrush" Value="{StaticResource CyanBrush}" /></Style>
+    </UserControl.Styles>
+    <Border Classes="panel vfo" Classes.rx="{Binding IsRx}" Classes.tx="{Binding IsTx}" Padding="12,8">
+        <StackPanel Spacing="6">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                    <Border Classes="badge rx" IsVisible="{Binding IsRx}"><TextBlock Text="RX" /></Border>
+                    <Border Classes="badge tx" IsVisible="{Binding IsTx}"><TextBlock Text="TX ▶" /></Border>
+                    <Button Classes="chip" Content="émettre ici" Command="{Binding SelectAsTxCommand}" IsVisible="{Binding !IsTx}" ToolTip.Tip="Faire de ce VFO celui d'émission" />
+                </StackPanel>
+                <TextBlock Text="{Binding Name}" Classes="title" Margin="0" VerticalAlignment="Center" />
+            </DockPanel>
+
+            <!-- fréquence : toucher = saisie en place (Entrée ou sortie du champ = envoi) -->
+            <Panel>
+                <Button Classes="bare" Command="{Binding BeginEditCommand}" IsVisible="{Binding !Editing}" ToolTip.Tip="Toucher pour saisir la fréquence">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Classes="freq" Text="{Binding FreqText}" />
+                        <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,8" Spacing="1">
+                            <TextBlock Text="{Binding TxText}" Classes="dim" />
+                            <TextBlock Text="{Binding RssiText}" Classes="dim" FontSize="11" />
+                        </StackPanel>
+                    </StackPanel>
+                </Button>
+                <StackPanel Spacing="6" IsVisible="{Binding Editing}">
+                <WrapPanel ItemSpacing="6" LineSpacing="4">
+                    <TextBlock Text="RX" Classes="dim" VerticalAlignment="Center" />
+                    <TextBox Name="FreqBox" Text="{Binding RxMhz, UpdateSourceTrigger=LostFocus}" Classes.active="{Binding !EditTx}" TextInputOptions.ContentType="Number" FontFamily="monospace" FontSize="20" Width="150" Watermark="MHz" />
+                    <TextBlock Text="↑ TX" Classes="dim" VerticalAlignment="Center" />
+                    <TextBox Name="TxBox" Text="{Binding TxMhz, UpdateSourceTrigger=LostFocus}" Classes.active="{Binding EditTx}" TextInputOptions.ContentType="Number" FontFamily="monospace" FontSize="14" Width="110" Watermark="= RX" />
+                    <Button Name="OkButton" Classes="chip" Content="OK" Command="{Binding EndEditCommand}" />
+                </WrapPanel>
+                <!-- pavé de l'appli (téléphone, VfoCardView.Keypad) : le clavier Android n'offre pas le point -->
+                <Grid Name="KeypadPanel" IsVisible="False" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" MaxWidth="360" HorizontalAlignment="Left">
+                    <Grid.Styles>
+                        <Style Selector="Button.key"><Setter Property="FontSize" Value="20" /><Setter Property="MinHeight" Value="46" /><Setter Property="Margin" Value="2" /><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Center" /></Style>
+                    </Grid.Styles>
+                    <Button Grid.Row="0" Grid.Column="0" Classes="chip key" Content="1" Command="{Binding KeyCommand}" CommandParameter="1" />
+                    <Button Grid.Row="0" Grid.Column="1" Classes="chip key" Content="2" Command="{Binding KeyCommand}" CommandParameter="2" />
+                    <Button Grid.Row="0" Grid.Column="2" Classes="chip key" Content="3" Command="{Binding KeyCommand}" CommandParameter="3" />
+                    <Button Grid.Row="0" Grid.Column="3" Classes="chip key" Content="⌫" Command="{Binding KeyCommand}" CommandParameter="⌫" />
+                    <Button Grid.Row="1" Grid.Column="0" Classes="chip key" Content="4" Command="{Binding KeyCommand}" CommandParameter="4" />
+                    <Button Grid.Row="1" Grid.Column="1" Classes="chip key" Content="5" Command="{Binding KeyCommand}" CommandParameter="5" />
+                    <Button Grid.Row="1" Grid.Column="2" Classes="chip key" Content="6" Command="{Binding KeyCommand}" CommandParameter="6" />
+                    <Button Grid.Row="1" Grid.Column="3" Classes="chip key" Content="C" Command="{Binding KeyCommand}" CommandParameter="C" ToolTip.Tip="Vider le champ" />
+                    <Button Grid.Row="2" Grid.Column="0" Classes="chip key" Content="7" Command="{Binding KeyCommand}" CommandParameter="7" />
+                    <Button Grid.Row="2" Grid.Column="1" Classes="chip key" Content="8" Command="{Binding KeyCommand}" CommandParameter="8" />
+                    <Button Grid.Row="2" Grid.Column="2" Classes="chip key" Content="9" Command="{Binding KeyCommand}" CommandParameter="9" />
+                    <ToggleButton Grid.Row="2" Grid.Column="3" Classes="key" FontSize="14" Content="TX" IsChecked="{Binding EditTx}" ToolTip.Tip="Saisir la fréquence d'émission (vide = RX)" />
+                    <Button Grid.Row="3" Grid.Column="0" Classes="chip key" Content="." Command="{Binding KeyCommand}" CommandParameter="." />
+                    <Button Grid.Row="3" Grid.Column="1" Classes="chip key" Content="0" Command="{Binding KeyCommand}" CommandParameter="0" />
+                    <Button Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Classes="chip key on" Content="OK" Command="{Binding EndEditCommand}" />
+                </Grid>
+                </StackPanel>
+            </Panel>
+
+            <!-- S-mètre du VFO écouté -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="S" Classes="dim" VerticalAlignment="Center" />
+                <ItemsControl ItemsSource="{Binding Segments}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:Segment">
+                            <Border Classes="seg" Classes.lit="{Binding Lit}" Classes.g="{Binding IsGreen}" Classes.a="{Binding IsAmber}" Classes.r="{Binding IsRed}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- pastilles de réglage : envoi immédiat -->
+            <WrapPanel ItemSpacing="6" LineSpacing="6">
+                <Button Classes="chip" Content="{Binding ModulationText}" ToolTip.Tip="Mode (BYP / RAW : firmware hôte H30)">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="FM"  Command="{Binding SetModulationCommand}" CommandParameter="0" />
+                            <MenuItem Header="AM"  Command="{Binding SetModulationCommand}" CommandParameter="1" />
+                            <MenuItem Header="USB" Command="{Binding SetModulationCommand}" CommandParameter="2" />
+                            <MenuItem Header="BYP" Command="{Binding SetModulationCommand}" CommandParameter="3" />
+                            <MenuItem Header="RAW" Command="{Binding SetModulationCommand}" CommandParameter="4" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+                <Button Classes="chip" Content="{Binding SquelchText}" ToolTip.Tip="Squelch 0 (ouvert) à 9">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="0 : ouvert" Command="{Binding SetSquelchCommand}" CommandParameter="0" />
+                            <MenuItem Header="1" Command="{Binding SetSquelchCommand}" CommandParameter="1" />
+                            <MenuItem Header="2" Command="{Binding SetSquelchCommand}" CommandParameter="2" />
+                            <MenuItem Header="3" Command="{Binding SetSquelchCommand}" CommandParameter="3" />
+                            <MenuItem Header="4" Command="{Binding SetSquelchCommand}" CommandParameter="4" />
+                            <MenuItem Header="5" Command="{Binding SetSquelchCommand}" CommandParameter="5" />
+                            <MenuItem Header="6" Command="{Binding SetSquelchCommand}" CommandParameter="6" />
+                            <MenuItem Header="7" Command="{Binding SetSquelchCommand}" CommandParameter="7" />
+                            <MenuItem Header="8" Command="{Binding SetSquelchCommand}" CommandParameter="8" />
+                            <MenuItem Header="9" Command="{Binding SetSquelchCommand}" CommandParameter="9" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+                <Button Classes="chip" Classes.on="{Binding Narrow}" Content="{Binding BandwidthText}" Command="{Binding ToggleNarrowCommand}" ToolTip.Tip="Excursion : 25 kHz ou 12,5 kHz" />
+                <Button Classes="chip" Classes.on="{Binding Flat}" Content="audio plat" Command="{Binding ToggleFlatCommand}" ToolTip.Tip="Audio brut du discriminateur (décodeurs sondes / SARSAT)" />
+                <Button Classes="chip" Content="{Binding PowerText}" ToolTip.Tip="Puissance d'émission">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Haute"   Command="{Binding SetPowerCommand}" CommandParameter="0" />
+                            <MenuItem Header="Moyenne" Command="{Binding SetPowerCommand}" CommandParameter="1" />
+                            <MenuItem Header="Basse"   Command="{Binding SetPowerCommand}" CommandParameter="2" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </WrapPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

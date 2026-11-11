@@ -1,0 +1,12 @@
+.pio/
+.vscode/
+build/
+bin/
+obj/
+*.user
+*.swp
+app/**/bin/
+app/**/obj/
+dist/
+app/UVLink.Android/native/
+__pycache__/

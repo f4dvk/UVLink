@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+	<!-- tuiles OpenStreetMap de l'onglet CARTE -->
+	<uses-permission android:name="android.permission.INTERNET" />
+	<!-- BLE : Android 12+ (API 31) = BLUETOOTH_SCAN / BLUETOOTH_CONNECT ; avant = BLUETOOTH + localisation fine pour le scan -->
+	<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+	<!-- localisation : scan BLE avant Android 12, et GPS du téléphone (option de RÉGLAGES) sur toutes les versions -->
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+	<uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+	<!-- micro pour le PTT (AudioRecord) -->
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+	<!-- extractNativeLibs : les .so sont extraits sur disque à l'installation, indispensable pour exécuter librtl_433.so (onglet ISM) -->
+	<application android:label="UVLink" android:icon="@drawable/Icon" android:extractNativeLibs="true" />
+</manifest>

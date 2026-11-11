@@ -1,0 +1,415 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:UVLink.ViewModels"
+             xmlns:views="using:UVLink.Views"
+             xmlns:mapsui="using:Mapsui.UI.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="680"
+             x:Class="UVLink.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <!-- Mise en page adaptative (MainView.axaml.cs, ApplyLayout) : large = deux colonnes + bandeau fixe ;
+         étroit (téléphone, < 700 px) = blocs empilés dans une page qui défile, en-tête sur deux lignes.
+         Étroit + onglet CARTE, RÉGLAGES, SSTV ou POCSAG : le contenu de l'onglet est déplacé dans FullPage, plein écran,
+         avec un bandeau de rappel (VFO écouté, mode, RSSI) en haut ; RETOUR / ≡ rendent la page normale. -->
+    <Panel>
+    <Grid Name="FullPage" RowDefinitions="Auto,*" IsVisible="False">
+        <Border Grid.Row="0" Classes="panel" Padding="6,4" Margin="4,4,4,0">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                <Button Grid.Column="0" Classes="neon" Content="≡" FontSize="18" Padding="10,0" MinWidth="44" VerticalAlignment="Center">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                            <MenuItem Header="Journal"  Command="{Binding SelectTabCommand}" CommandParameter="0" />
+                            <MenuItem Header="Décodeur" Command="{Binding SelectTabCommand}" CommandParameter="1" />
+                            <MenuItem Header="APRS"     Command="{Binding SelectTabCommand}" CommandParameter="2" />
+                            <MenuItem Header="Carte"    Command="{Binding SelectTabCommand}" CommandParameter="3" />
+                            <MenuItem Header="Réglages" Command="{Binding SelectTabCommand}" CommandParameter="4" />
+                            <MenuItem Header="Spectre"  Command="{Binding SelectTabCommand}" CommandParameter="5" />
+                            <MenuItem Header="SSTV"     Command="{Binding SelectTabCommand}" CommandParameter="6" />
+                            <MenuItem Header="POCSAG"   Command="{Binding SelectTabCommand}" CommandParameter="7" />
+                            <MenuItem Header="ISM 433"  Command="{Binding SelectTabCommand}" CommandParameter="8" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+                <StackPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center" Spacing="2">
+                    <Button Classes="neon" Content="RETOUR" Command="{Binding MapBackCommand}" />
+                    <TextBlock Text="{Binding CurrentTabName}" Classes="title" FontSize="11" Margin="0" HorizontalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="0" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Classes="led green" Classes.lit="{Binding Signal}" VerticalAlignment="Center" />
+                        <TextBlock Classes="freq" FontSize="22" Text="{Binding RxFreqText}" />
+                    </StackPanel>
+                    <WrapPanel ItemSpacing="10">
+                            <Button Classes="chip" Content="{Binding ModeChipText}" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" FontSize="12" Padding="8,0" MinHeight="22" ToolTip.Tip="Décodeur de l'ESP : toucher pour changer">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuItem Header="Phonie (aucun décodeur)" Command="{Binding SelectModeCommand}" CommandParameter="0" />
+                                    <MenuItem Header="APRS"   Command="{Binding SelectModeCommand}" CommandParameter="1" />
+                                    <MenuItem Header="SSTV"   Command="{Binding SelectModeCommand}" CommandParameter="2" />
+                                    <MenuItem Header="POCSAG" Command="{Binding SelectModeCommand}" CommandParameter="3" />
+                                    <MenuItem Header="ISM 433 / 868" Command="{Binding SelectModeCommand}" CommandParameter="4" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            </Button>
+                        <TextBlock Text="{Binding RssiText}" Classes="dim" FontSize="12" VerticalAlignment="Center" />
+                    </WrapPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Border Classes="led cyan" Classes.lit="{Binding IsConnected}" />
+                    <Border Classes="led amber" Classes.lit="{Binding RadioPresent}" />
+                    <Border Classes="led red" Classes.lit="{Binding Transmitting}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" Classes="panel" Padding="2" Margin="4">
+            <Panel Name="FullHost" />
+        </Border>
+    </Grid>
+    <ScrollViewer Name="RootScroll" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+    <Grid Name="RootGrid" RowDefinitions="Auto,Auto,6,*" Margin="8">
+
+        <!-- en-tête -->
+        <Border Grid.Row="0" Classes="panel">
+            <Grid Name="HeaderGrid" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                <Button Classes="neon" Content="≡" FontSize="18" Padding="10,0" MinWidth="44" ToolTip.Tip="Choisir l'onglet du bandeau du bas" VerticalAlignment="Center">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                            <MenuItem Header="Journal"  Command="{Binding SelectTabCommand}" CommandParameter="0" />
+                            <MenuItem Header="Décodeur" Command="{Binding SelectTabCommand}" CommandParameter="1" />
+                            <MenuItem Header="APRS"     Command="{Binding SelectTabCommand}" CommandParameter="2" />
+                            <MenuItem Header="Carte"    Command="{Binding SelectTabCommand}" CommandParameter="3" />
+                            <MenuItem Header="Réglages" Command="{Binding SelectTabCommand}" CommandParameter="4" />
+                            <MenuItem Header="Spectre"  Command="{Binding SelectTabCommand}" CommandParameter="5" />
+                            <MenuItem Header="SSTV"     Command="{Binding SelectTabCommand}" CommandParameter="6" />
+                            <MenuItem Header="POCSAG"   Command="{Binding SelectTabCommand}" CommandParameter="7" />
+                            <MenuItem Header="ISM 433"  Command="{Binding SelectTabCommand}" CommandParameter="8" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+                    <TextBlock Text="UVLink" FontSize="26" FontWeight="Bold" Foreground="{StaticResource CyanBrush}"
+                               Effect="drop-shadow(0 0 12 #602FD1FF)" />
+                    <TextBlock Name="SubTitle" Text="UV-K1 / K5 V3 · BLE" Classes="dim" VerticalAlignment="Center" />
+                </StackPanel>
+                <WrapPanel Name="LedPanel" Grid.Column="1" Orientation="Horizontal" ItemSpacing="18" LineSpacing="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="led cyan" Classes.lit="{Binding IsConnected}" />
+                        <TextBlock Text="LIAISON" Classes="dim" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="led amber" Classes.lit="{Binding RadioPresent}" />
+                        <TextBlock Text="POSTE" Classes="dim" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="led green" Classes.lit="{Binding Signal}" />
+                        <TextBlock Text="SIGNAL" Classes="dim" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="led red" Classes.lit="{Binding Transmitting}" />
+                        <TextBlock Text="TX" Classes="dim" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- batterie du poste : jauge + % + tension -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding RadioPresent}" ToolTip.Tip="Batterie du poste (tension lue dans le STATUS)">
+                        <Border Classes="batt" Classes.low="{Binding BatteryLow}" VerticalAlignment="Center">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding BatteryPercent}" Width="26" MinWidth="26" Height="10" MinHeight="10" CornerRadius="1" Background="Transparent" />
+                        </Border>
+                        <Border Width="2" Height="5" Background="{StaticResource DimBrush}" VerticalAlignment="Center" Margin="-5,0,0,0" />
+                        <TextBlock Text="{Binding BatteryHeaderText}" Classes="dim" VerticalAlignment="Center" />
+                    </StackPanel>
+                </WrapPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Name="ConnectionLabel" Text="{Binding ConnectionText}" Classes="dim" VerticalAlignment="Center" MaxWidth="220" TextTrimming="CharacterEllipsis" />
+                    <Button Classes="neon" Content="{Binding IsConnected, Converter={x:Static vm:Converters.ConnectLabel}}"
+                            Command="{Binding ConnectCommand}" IsEnabled="{Binding !IsBusy}" MinWidth="130" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Name="MainGrid" Grid.Row="1" ColumnDefinitions="*,*,Auto" RowDefinitions="*">
+
+            <!-- cartes VFO : affichage + réglage (VfoCardView) -->
+            <views:VfoCardView Name="CardA" Grid.Column="0" DataContext="{Binding Vfos[0]}" Margin="0,0,8,0" />
+            <views:VfoCardView Name="CardB" Grid.Column="1" DataContext="{Binding Vfos[1]}" Margin="0,0,8,0" />
+
+            <!-- émission, poste, état -->
+            <Border Name="RightPanel" Grid.Column="2" Classes="panel" Width="300">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="title" Text="ÉMISSION" />
+                    <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Top">
+                        <!-- actif dès la liaison : sans poste, le micro sort quand même sur le PWM (test banc) -->
+                        <Button Name="PttButton" Classes="ptt" Classes.on="{Binding PttOn}" Content="PTT" IsEnabled="{Binding IsConnected}" />
+                        <StackPanel Spacing="8" VerticalAlignment="Center">
+                            <ToggleButton Content="MONITOR" IsChecked="{Binding MonitorOn, Mode=OneWay}"
+                                          Command="{Binding ToggleMonitorCommand}" IsEnabled="{Binding RadioPresent}" />
+                            <CheckBox Content="Double veille" IsChecked="{Binding DualWatch}" ToolTip.Tip="Envoyé aussitôt ; l'émission se fait sur le VFO marqué TX ▶" />
+                            <TextBlock Name="PttHint" Text="Maintenir PTT pour émettre" Classes="dim" FontSize="11" TextWrapping="Wrap" MaxWidth="130" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Classes="title" Text="ÉTAT" Margin="0,6,0,4" />
+                    <StackPanel Spacing="3">
+                        <WrapPanel ItemSpacing="8" LineSpacing="2">
+                            <!-- décodeur de l'ESP : toucher = menu (aussi dans RÉGLAGES) -->
+                            <Button Classes="chip" Content="{Binding ModeChipText}" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" ToolTip.Tip="Décodeur de l'ESP : toucher pour changer">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuItem Header="Phonie (aucun décodeur)" Command="{Binding SelectModeCommand}" CommandParameter="0" />
+                                    <MenuItem Header="APRS"   Command="{Binding SelectModeCommand}" CommandParameter="1" />
+                                    <MenuItem Header="SSTV"   Command="{Binding SelectModeCommand}" CommandParameter="2" />
+                                    <MenuItem Header="POCSAG" Command="{Binding SelectModeCommand}" CommandParameter="3" />
+                                    <MenuItem Header="ISM 433 / 868" Command="{Binding SelectModeCommand}" CommandParameter="4" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            </Button>
+                            <TextBlock Text="{Binding AudioPathText}" Classes="dim" FontSize="11" VerticalAlignment="Center" />
+                        </WrapPanel>
+                        <TextBlock Text="SATURATION : baisser le volume du poste" Foreground="#E05050" FontWeight="Bold" IsVisible="{Binding AdcSaturated}" />
+                        <TextBlock Text="{Binding BatteryText, StringFormat='Batterie {0}'}" Classes="dim" />
+                        <TextBlock Text="{Binding AudioRateText}" Classes="dim" />
+                        <TextBlock Text="{Binding GpsText}" Classes="dim" />
+                        <TextBlock Text="{Binding FirmwareText}" Classes="dim" FontSize="11" TextWrapping="Wrap" />
+                        <Button Classes="bare" Command="{Binding OpenLastDecodeCommand}" IsVisible="{Binding LastDecodeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" ToolTip.Tip="Ouvrir l'onglet du décodeur">
+                            <TextBlock Text="{Binding LastDecodeText}" Foreground="{StaticResource AmberBrush}" FontSize="11" TextWrapping="Wrap" />
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- poignée : hauteur du bandeau du bas (carte) réglable -->
+        <GridSplitter Name="Splitter" Grid.Row="2" Height="6" HorizontalAlignment="Stretch" Background="Transparent" ResizeDirection="Rows" />
+        <!-- journal / décodeurs / carte -->
+        <Border Name="BottomPanel" Grid.Row="3" Classes="panel" Padding="6" MinHeight="160">
+          <Grid RowDefinitions="Auto,*">
+            <!-- mode étroit : nom de l'onglet courant (le menu ≡ est dans la barre du haut) -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="2,0,0,4">
+                <TextBlock Name="TabTitle" Text="{Binding CurrentTabName}" Classes="title" FontSize="16" Margin="4,2,0,0" VerticalAlignment="Center" IsVisible="False" />
+            </StackPanel>
+            <TabControl Name="BottomTabs" Grid.Row="1" SelectedIndex="{Binding SelectedTab}">
+                <TabItem Header="JOURNAL">
+                    <ListBox Classes="log" ItemsSource="{Binding LogLines}" />
+                </TabItem>
+                <TabItem Header="DÉCODEUR">
+                    <Grid ColumnDefinitions="2*,3*" RowDefinitions="Auto,Auto,*">
+                        <!-- barre repliable (téléphone : EFFACER passait hors écran) ; les niveaux ADC sur leur ligne -->
+                        <WrapPanel Grid.Row="0" Grid.ColumnSpan="2" ItemSpacing="12" LineSpacing="4" Margin="4,2">
+                            <TextBlock Text="{Binding ModeText}" Classes="title" Margin="0" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Border Classes="led green" Classes.lit="{Binding LevelOk}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding LevelVerdictText}" Classes="dim" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding LevelRms}" Width="120" Height="8" Foreground="{StaticResource AmberBrush}" VerticalAlignment="Center" />
+                            <Button Classes="neon" Content="EFFACER" Command="{Binding ClearDecoderCommand}" Padding="8,2" />
+                        </WrapPanel>
+                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding LevelText}" Classes="dim" FontSize="11" TextWrapping="Wrap" Margin="4,0,4,2" />
+                        <ListBox Grid.Row="2" Grid.Column="0" Classes="log" ItemsSource="{Binding DecoderLines}" Margin="0,0,4,0" />
+                        <ListBox Grid.Row="2" Grid.Column="1" Classes="log" ItemsSource="{Binding DecodeHistory}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="APRS">
+                    <Grid RowDefinitions="*,Auto,100">
+                        <ListBox Grid.Row="0" Classes="log" ItemsSource="{Binding AprsPackets}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AprsRow">
+                                    <TextBlock Text="{Binding Summary}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Grid.Row="1" Text="Moniteur (trames AX.25 brutes)" Classes="dim" Margin="4,4,0,2" />
+                        <ListBox Grid.Row="2" Classes="log" ItemsSource="{Binding AprsMonitor}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Name="MapTab" Header="CARTE">
+                    <Panel Name="MapPanel">
+                        <mapsui:MapControl Name="MapView" />
+                        <StackPanel Name="MapZoomButtons" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8" Spacing="4">
+                            <Button Classes="neon" Content="+" Command="{Binding MapZoomInCommand}" Width="44" Padding="0,4" FontSize="18" HorizontalContentAlignment="Center" ToolTip.Tip="Zoom avant" />
+                            <Button Classes="neon" Content="-" Command="{Binding MapZoomOutCommand}" Width="44" Padding="0,4" FontSize="18" HorizontalContentAlignment="Center" ToolTip.Tip="Zoom arrière" />
+                            <Button Classes="neon" Content="TOUT" Command="{Binding MapFitAllCommand}" Width="44" Padding="0,4" FontSize="11" HorizontalContentAlignment="Center" ToolTip.Tip="Cadrer tous les marqueurs" />
+                        </StackPanel>
+                        <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8" Background="{StaticResource PanelBrush}" Opacity="0.92"
+                                BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,6">
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Effacer après" Classes="dim" VerticalAlignment="Center" ToolTip.Tip="Un marqueur sans nouvelle position depuis ce délai disparaît" />
+                                    <ComboBox ItemsSource="{Binding MapExpiryNames}" SelectedIndex="{Binding MapExpiryIndex}" MinWidth="90" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <CheckBox Content="APRS" IsChecked="{Binding MapShowAprs}" />
+                                    <CheckBox Content="Sondes" IsChecked="{Binding MapShowSondes}" />
+                                    <CheckBox Content="SARSAT" IsChecked="{Binding MapShowSarsat}" />
+                                    <Button Classes="neon" Content="EFFACER" Command="{Binding MapClearCommand}" Padding="8,2" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding MapCountText}" Classes="dim" FontSize="11" />
+                            </StackPanel>
+                        </Border>
+                        <!-- fiche station (clic sur une épingle, MainView.OnMapInfo) : heure, trames, position, commentaire, chemin, trame brute -->
+                        <Border Name="MapInfoBox" IsVisible="{Binding MapInfoVisible}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8" MaxWidth="460"
+                                Background="{StaticResource PanelBrush}" Opacity="0.95" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,6">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding MapInfoTitle}" Classes="title" Margin="0,0,8,4" VerticalAlignment="Center" />
+                                <Button Grid.Row="0" Grid.Column="1" Classes="neon" Content="✕" Command="{Binding MapInfoCloseCommand}" Padding="8,2" Margin="0,0,0,4" />
+                                <SelectableTextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding MapInfoText}" TextWrapping="Wrap" FontSize="12" />
+                            </Grid>
+                        </Border>
+                    </Panel>
+                </TabItem>
+                <TabItem Header="RÉGLAGES">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="8" Margin="4,0,8,8">
+                            <TextBlock Classes="title" Text="AUDIO" Margin="0,4,0,8" />
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <CheckBox Content="Écoute" IsChecked="{Binding AudioOn}" />
+                                <TextBlock Text="{Binding AudioDeviceText}" Classes="dim" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Volume" Classes="dim" VerticalAlignment="Center" />
+                                <Slider    Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding Volume}" />
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Niveau RX" Classes="dim" VerticalAlignment="Center" />
+                                <ProgressBar Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding RxLevel}" Height="8" Margin="0,4" Foreground="{StaticResource GreenBrush}" />
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding MicGain, StringFormat='Micro {0:0} %'}" Classes="dim" VerticalAlignment="Center" />
+                                <DockPanel Grid.Row="2" Grid.Column="1">
+                                    <CheckBox DockPanel.Dock="Right" Content="AGC" IsChecked="{Binding TxAgcOn}" Margin="8,0,0,0" ToolTip.Tip="Contrôle automatique du gain micro (crête visée 60 %, jusqu'à x24) ; indispensable sur téléphone" />
+                                    <Slider Minimum="10" Maximum="400" Value="{Binding MicGain}" ToolTip.Tip="Gain du micro avant envoi au poste (100 % = brut), en plus de l'AGC ; viser un niveau TX qui monte vers 70-80 % sans saturer" />
+                                </DockPanel>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Niveau TX" Classes="dim" VerticalAlignment="Center" />
+                                <ProgressBar Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding TxLevel}" Height="8" Margin="0,4" Foreground="{StaticResource RedBrush}" />
+                            </Grid>
+                            <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
+                                <ComboBox ItemsSource="{Binding AudioRxModeNames}" SelectedIndex="{Binding AudioRxMode}" MinWidth="140" />
+                                <NumericUpDown Minimum="1" Maximum="64" Value="{Binding AudioGain}" FormatString="0" Width="110" />
+                                <CheckBox Content="AGC" IsChecked="{Binding AgcOn}" VerticalAlignment="Center" />
+                                <Button Classes="neon" Content="CALIBRER" Command="{Binding CalibrateAudioCommand}" IsEnabled="{Binding IsConnected}"
+                                        ToolTip.Tip="Parle à niveau normal pendant 3 s : gain fixe calculé, AGC coupé, mémorisé dans l'ESP" />
+                            </WrapPanel>
+                            <TextBlock Text="{Binding AdcText}" Classes="dim" FontSize="11" Margin="0,4,0,0" />
+
+                            <TextBlock Classes="title" Text="DÉCODEUR" Margin="0,12,0,8" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox ItemsSource="{Binding ModeNames}" SelectedIndex="{Binding SelectedMode}" MinWidth="150" />
+                            </StackPanel>
+                            <CheckBox Content="Décodeur APRS de l'appli (sur l'audio Bluetooth)" IsChecked="{Binding AprsAppDecoder}"
+                                      ToolTip.Tip="Second décodeur AFSK 1200, indépendant de celui de l'ESP : chacun rattrape les trames manquées par l'autre. Demande le flux audio (Permanent ou Auto)." />
+                            <TextBlock Text="{Binding AprsAppText}" Classes="dim" FontSize="11" />
+                            <Grid ColumnDefinitions="90,*,*" Margin="0,6,0,0">
+                                <TextBlock Grid.Column="0" Text="Ma position" Classes="dim" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" Text="{Binding MyLat, UpdateSourceTrigger=LostFocus}" Watermark="lat °" FontFamily="monospace" Margin="0,2,4,2" />
+                                <TextBox Grid.Column="2" Text="{Binding MyLon, UpdateSourceTrigger=LostFocus}" Watermark="lon °" FontFamily="monospace" Margin="0,2,4,2" />
+                            </Grid>
+                            <CheckBox Content="GPS du téléphone si le module GPS de l'ESP n'a pas de fix" IsChecked="{Binding PhoneGps}" IsEnabled="{Binding PhoneGpsAvailable}"
+                                      ToolTip.Tip="La position du téléphone remplit « Ma position », part à l'ESP (distance / azimut APRS et sondes) et place le marqueur sur la carte. Le module GPS de l'ESP reprend la main dès qu'il a un fix. Appli au premier plan seulement." />
+                            <TextBlock Text="{Binding PhoneGpsText}" Classes="dim" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock Classes="title" Text="RSSI dBm : CORRECTION PAR BANDE" Margin="0,12,0,4" />
+                            <TextBlock Text="Ajoutée au RSSI brut du poste (brut/2 − 160), comme le menu DBMCAL du firmware v6. Mémorisée dans l'ESP, envoyée dès modification." Classes="dim" FontSize="11" TextWrapping="Wrap" />
+                            <ItemsControl ItemsSource="{Binding RssiBands}">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="4" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:RssiBand">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="{Binding Name}" Classes="dim" VerticalAlignment="Center" Width="86" />
+                                            <NumericUpDown Minimum="-40" Maximum="40" Value="{Binding Value}" FormatString="0" Width="100" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="{Binding AdcDc, StringFormat='ADC repos : {0}'}" Classes="dim" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="SPECTRE">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="Audio reçu, 0 à 4 kHz (FFT 1024, 20 images/s) : spectre en haut, chute d'eau en bas. Sonde M10 : énergie jusqu'à 4 kHz ; salve 406 : porteuse puis données 400 Bd." Classes="dim" FontSize="11" Margin="4,2" TextWrapping="Wrap" />
+                        <views:SpectrumView Grid.Row="1" Source="{Binding Spectrum}" Margin="4" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="SSTV">
+                    <Grid Name="SstvGrid" ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+                        <!-- fw ≥ 0.11 : le SSTV est détecté automatiquement en phonie (en-tête VIS) ; le mode
+                             SSTV dédié (ADC 48 kHz, audio plat forcé) reste disponible ici ou dans RÉGLAGES -->
+                        <WrapPanel Name="SstvBar" Grid.Row="0" Grid.ColumnSpan="2" ItemSpacing="12" LineSpacing="4" Margin="4,2">
+                            <ToggleButton Content="MODE SSTV DÉDIÉ" IsChecked="{Binding SstvDecoder}" IsEnabled="{Binding IsConnected}"
+                                          ToolTip.Tip="Optionnel : en phonie l'image est déjà détectée automatiquement. Ce mode passe l'ESP en ADC 48 kHz + audio plat ; décoché = retour en phonie" />
+                            <TextBlock Text="{Binding ModeText}" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding LevelVerdictText}" Classes="dim" VerticalAlignment="Center" />
+                        </WrapPanel>
+                        <!-- téléphone (page plein écran) : la Viewbox prend toute la largeur, l'image suit à l'échelle 320:256 -->
+                        <Border Name="SstvImageBorder" Grid.Row="1" Grid.Column="0" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" Background="Black" Margin="4" VerticalAlignment="Top" HorizontalAlignment="Left">
+                            <!-- l'image prend la taille du bitmap (320x256, ou 320x248 / 400x308 pour les PD larges) ;
+                                 bureau : Viewbox de 320 px de large, hauteur selon l'image -->
+                            <Viewbox Name="SstvImageBox" Stretch="Uniform" Width="320">
+                                <Image Name="SstvImageControl" Source="{Binding SstvImage}" Stretch="None" />
+                            </Viewbox>
+                        </Border>
+                        <TextBlock Name="SstvInfoBlock" Grid.Row="1" Grid.Column="1" Text="{Binding SstvInfoText}" Classes="dim" Margin="8" TextWrapping="Wrap" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="POCSAG">
+                    <Grid RowDefinitions="Auto,Auto,*">
+                        <!-- fw ≥ 0.13 : mode POCSAG de l'ESP (ADC 32 kHz, audio plat forcé, 512/1200/2400 Bd) ;
+                             le décodeur de l'appli écoute en plus l'audio Bluetooth (512/1200 Bd, 2400 limite) -->
+                        <WrapPanel Grid.Row="0" ItemSpacing="12" LineSpacing="4" Margin="4,2">
+                            <ToggleButton Content="MODE POCSAG (ESP)" IsChecked="{Binding PocsagDecoder}" IsEnabled="{Binding IsConnected}"
+                                          ToolTip.Tip="Passe l'ESP en mode POCSAG : décodage des trois débits sur l'ADC 32 kHz, audio plat forcé côté poste (indispensable à 1200 et 2400 Bd) ; l'écoute continue. Décoché = retour en phonie" />
+                            <TextBlock Text="{Binding ModeText}" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" VerticalAlignment="Center" />
+                            <CheckBox Content="Décodeur de l'appli (audio Bluetooth)" IsChecked="{Binding PocsagAppDecoder}"
+                                      ToolTip.Tip="Second décodeur, sur le flux audio 8 kHz : 512 et 1200 Bd fiables, 2400 Bd limite. Un message vu par les deux n'est affiché qu'une fois (ESP+appli). Demande le flux audio (Permanent ou Auto) et l'audio plat du poste." />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="Caractères" Classes="dim" VerticalAlignment="Center" ToolTip.Tip="Jeu national pour $ @ [ \ ] ` { | } ~ (comme le « Charset » de Portsdown 4)" />
+                                <ComboBox ItemsSource="{Binding PocsagCharsetNames}" SelectedIndex="{Binding PocsagCharset}" MinWidth="110" />
+                            </StackPanel>
+                            <CheckBox Content="Masquer les bips seuls" IsChecked="{Binding PocsagHideTone}" ToolTip.Tip="Appels sans message (adresse seule)" />
+                            <Button Classes="neon" Content="EFFACER" Command="{Binding ClearPocsagCommand}" Padding="8,2" />
+                        </WrapPanel>
+                        <TextBlock Grid.Row="1" Text="{Binding PocsagAppText}" Classes="dim" FontSize="11" Margin="4,0,4,2" />
+                        <ListBox Grid.Row="2" Classes="log" ItemsSource="{Binding PocsagMessages}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:PocsagRow">
+                                    <StackPanel Spacing="1" Margin="0,2">
+                                        <TextBlock Text="{Binding Head}" Classes="dim" FontSize="11" />
+                                        <TextBlock Text="{Binding Body}" TextWrapping="Wrap" Foreground="{StaticResource AmberBrush}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="ISM">
+                    <Grid RowDefinitions="Auto,Auto,*">
+                        <!-- fw ≥ 0.14 : mode ISM de l'ESP = impulsions OOK lues sur le souffle (audio plat forcé) ;
+                             rtl_433 (installé sur le PC) décode les paquets (.ook). Expérimental. -->
+                        <WrapPanel Grid.Row="0" ItemSpacing="12" LineSpacing="4" Margin="4,2">
+                            <ToggleButton Content="MODE ISM (ESP)" IsChecked="{Binding IsmDecoder}" IsEnabled="{Binding IsConnected}"
+                                          ToolTip.Tip="Passe l'ESP en mode ISM : il mesure les impulsions marche / arrêt de la porteuse (silence du souffle) et les envoie ; rtl_433 les décode ici. Poste en FM large (25 kHz), squelch 0, sur 433,920 / 868,300 / 868,950 / 315,000 MHz" />
+                            <TextBlock Text="{Binding ModeText}" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" VerticalAlignment="Center" />
+                            <ComboBox ItemsSource="{Binding IsmModeNames}" SelectedIndex="{Binding IsmMode}" MinWidth="200"
+                                      ToolTip.Tip="Capteurs : tous les décodeurs de rtl_433. Télécommandes : KeeLoq, Somfy, Nice, Security+, Megacode… + codes fixes CAME / Nice FLO / Holtek (comme Portsdown 4)" />
+                            <TextBlock Text="433,920 · 868,300 · 868,950 · 315,000 MHz, FM 25 kHz, squelch 0" Classes="dim" VerticalAlignment="Center" />
+                            <Button Classes="neon" Content="EFFACER" Command="{Binding ClearIsmCommand}" Padding="8,2" />
+                        </WrapPanel>
+                        <TextBlock Grid.Row="1" Text="{Binding IsmText}" Classes="dim" FontSize="11" Margin="4,0,4,2" TextWrapping="Wrap" />
+                        <ListBox Grid.Row="2" Classes="log" ItemsSource="{Binding IsmRows}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:IsmRow">
+                                    <StackPanel Spacing="1" Margin="0,2" ToolTip.Tip="{Binding Json}">
+                                        <TextBlock Text="{Binding Head}" Classes="dim" FontSize="11" />
+                                        <TextBlock Text="{Binding Body}" TextWrapping="Wrap" Foreground="{StaticResource AmberBrush}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+          </Grid>
+        </Border>
+    </Grid>
+    </ScrollViewer>
+    </Panel>
+</UserControl>
