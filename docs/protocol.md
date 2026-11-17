@@ -65,7 +65,7 @@ au-dessus du plancher de bruit qu'il mesure (RSSI lissé, descente 3 s,
 montée 60 s) : seuil = plancher + 6 dB + 3 dB par niveau, hystérésis 3 dB, maintien 700 ms
 (`config.h` RADIO_SQ_*), le poste restant en squelch 0 (AF permanent) : son
 squelch matériel en mode hôte ne s'ouvre que par à-coups. Niveau 0 = AF
-permanent (données). `smeter` suit le RSSI même squelch fermé.
+permanent (données). `smeter` suit le RSSI même squelch fermé ; depuis fw 0.15 il suit la recommandation IARU R1 VHF/UHF (S9 = -93 dBm, 6 dB par point en dessous, 10 dB par segment au-dessus : 10..15 = S9+10..S9+60), l'appli refait ce calcul sur `rssi_dbm` (avant : (rssi+135)/6).
 
 `flags` : b0 signal reçu (squelch ouvert), b1 émission en cours,
 b2 double veille, b3 monitor, b4 VFO en réception (0/1), b5 VFO d'émission,

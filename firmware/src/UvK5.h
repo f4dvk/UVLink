@@ -230,18 +230,26 @@ public:
         // pas, le bruit ±2 dB est moyenné). Niveau 1..9 du VFO écouté -> seuil
         // au-dessus du plancher, avec hystérésis ; 0 = AF permanent (le poste
         // est en squelch 0, son flag `sig` vaut alors toujours 1).
+        // Squelch ouvert : le plancher ne monte pas (il ne descend que). Sinon
+        // une réception continue l'entraînait en ~1 min jusqu'à la porteuse, le
+        // seuil passait au-dessus du signal et l'audio se coupait jusqu'à un
+        // changement de VFO (constaté 2026-11-11) ; comme sur un poste, une
+        // porteuse présente garde le squelch ouvert tant qu'elle est là.
+        uint8_t lvl = vfo_[s.rxVfo & 1].squelch;
         {
             uint32_t now = millis();
             float dt = lastFloorMs_ ? (float)(now - lastFloorMs_) / 1000.0f : 0.0f;
             lastFloorMs_ = now;
             float r = (float)s.rssiDbm;
             if (floorDbm_ <= RADIO_SQ_FLOOR_MIN_DBM) floorDbm_ = r;     // première mesure
-            float tau = r < floorDbm_ ? (float)RADIO_SQ_FLOOR_FALL_S : (float)RADIO_SQ_FLOOR_RISE_S;
-            float k = dt / tau; if (k > 1.0f) k = 1.0f;
-            floorDbm_ += (r - floorDbm_) * k;
+            bool open = lvl > 0 && last_.sig;
+            if (r < floorDbm_ || !open) {
+                float tau = r < floorDbm_ ? (float)RADIO_SQ_FLOOR_FALL_S : (float)RADIO_SQ_FLOOR_RISE_S;
+                float k = dt / tau; if (k > 1.0f) k = 1.0f;
+                floorDbm_ += (r - floorDbm_) * k;
+            }
             if (floorDbm_ < RADIO_SQ_FLOOR_MIN_DBM) floorDbm_ = RADIO_SQ_FLOOR_MIN_DBM;
         }
-        uint8_t lvl = vfo_[s.rxVfo & 1].squelch;
         if (lvl > 0) {
             int thr = (int)floorDbm_ + RADIO_SQ_L1_DB + (int)(lvl > 9 ? 8 : lvl - 1) * RADIO_SQ_STEP_DB;
             if (last_.sig) thr -= RADIO_SQ_HYST_DB;
@@ -249,10 +257,7 @@ public:
             sqThrDbm_ = (int16_t)thr;
         }
 #endif
-        int sm = (s.rssiDbm + 135) / 6;   // S-mètre d'après le RSSI, squelch ouvert ou non
-        if (sm < 0) sm = 0;
-        if (sm > 15) sm = 15;
-        s.sMeter    = (uint8_t)sm;
+        s.sMeter    = sMeterOf(s.rssiDbm);   // S-mètre d'après le RSSI, squelch ouvert ou non
         s.stamp     = millis();
         return true;
     }
@@ -351,5 +356,18 @@ private:
     uint32_t lastFloorMs_ = 0;
     float    floorDbm_ = RADIO_SQ_FLOOR_MIN_DBM;
     int16_t  sqThrDbm_ = 0;
+    // S-mètre (recommandation IARU Région 1 R.1, VHF/UHF) : S9 = -93 dBm, 6 dB par point
+    // en dessous (S1 = -141 dBm), puis +10, +20 ... +60 dB au-dessus de S9. Segments 0..15 :
+    // 1..9 = S1..S9, 10..15 = S9+10 .. S9+60. L'appli refait le même calcul sur rssi_dbm.
+    static uint8_t sMeterOf(int dbm)
+    {
+        int sm;
+        if (dbm <= -93) sm = (dbm + 147) / 6;
+        else            sm = 9 + (dbm + 93) / 10;
+        if (sm < 0) sm = 0;
+        if (sm > 15) sm = 15;
+        return (uint8_t)sm;
+    }
+
     uint32_t lastSigMs_ = 0;
 };

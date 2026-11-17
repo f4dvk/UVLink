@@ -162,6 +162,10 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private string _currentTabName = TabNames[0];
     partial void OnSelectedTabChanged(int oldValue, int newValue) { CurrentTabName = newValue >= 0 && newValue < TabNames.Length ? TabNames[newValue] : ""; if (!IsFullPageTab(oldValue)) _tabBeforeMap = oldValue; }
     [RelayCommand] private void SelectTab(string? idx) { if (int.TryParse(idx, out var i)) SelectedTab = i; }
+    // S-mètre selon la recommandation IARU Région 1 (VHF/UHF) : S9 = -93 dBm, 6 dB par point
+    // en dessous (S1 = -141 dBm), +10 dB par segment au-dessus ; 15 segments = S1..S9, S9+10..S9+60.
+    public static int SUnits(int dbm) => Math.Clamp(dbm <= -93 ? (dbm + 147) / 6 : 9 + (dbm + 93) / 10, 0, 15);
+    public static string SLabel(int sm) => sm <= 9 ? $"S{sm}" : $"S9+{(sm - 9) * 10}";
     [RelayCommand] private void SelectMode(string? idx) { if (int.TryParse(idx, out var i) && i >= 0 && i < ModeNames.Length) SelectedMode = i; }   // pastille « décodeur » de l'accueil
     // Pages plein écran CARTE / RÉGLAGES / SSTV / POCSAG (téléphone, MainView.UpdateMapPage) : RETOUR = onglet d'avant
     private static bool IsFullPageTab(int t) => t is 3 or 4 or 6 or 7 or 8;
@@ -979,8 +983,8 @@ public partial class MainViewModel : ViewModelBase
         RadioText = s.RadioPresent ? "Poste : connecté" : "Poste : absent";
         Signal = s.Signal;
         Transmitting = s.Tx;
-        SMeter = s.SMeter;
-        RssiText = s.RadioPresent ? $"{s.RssiDbm} dBm  S{s.SMeter}" : "";
+        SMeter = s.RadioPresent ? SUnits(s.RssiDbm) : 0;   // calculé ici (IARU R1 VHF), quel que soit le firmware
+        RssiText = s.RadioPresent ? $"{s.RssiDbm} dBm  {SLabel(SMeter)}" : "";
         BatteryText = s.RadioPresent ? $"{s.BatteryMv / 1000.0:F2} V" : "";
         BatteryPercent = s.RadioPresent ? BatteryPercentOf(s.BatteryMv) : 0;
         BatteryHeaderText = s.RadioPresent ? $"{BatteryPercent} %  {s.BatteryMv / 1000.0:F2} V" : "";
@@ -993,7 +997,7 @@ public partial class MainViewModel : ViewModelBase
             c.TxText = tx != rx && tx != 0 ? "↑ " + Freq(tx) : "";
             c.IsRx = s.RadioPresent && s.RxVfo == i;
             c.Signal = s.Signal && s.RxVfo == i;
-            c.SetMeter(c.IsRx ? s.SMeter : 0, c.IsRx ? $"{s.RssiDbm} dBm  S{s.SMeter}" : "");
+            c.SetMeter(c.IsRx ? SMeter : 0, c.IsRx ? RssiText : "");
         }
         RxFreqText = s.RadioPresent ? $"{(s.RxVfo == 0 ? 'A' : 'B')} {Freq(s.RxVfo == 0 ? s.Rx0 : s.Rx1)}" : "---.----";
         // VFO d'émission = état réel du poste, sauf dans les 2 s qui suivent notre SET_RADIO

@@ -115,8 +115,9 @@
 // on laisse donc le poste en squelch 0 (AF permanent) et c'est l'ESP qui
 // décide d'après le RSSI lu à chaque GET_STATUS, par rapport au plancher de
 // bruit qu'il mesure lui-même (moyenne lissée du RSSI : descend en
-// ~RADIO_SQ_FLOOR_FALL_S, remonte en ~RADIO_SQ_FLOOR_RISE_S, donc une
-// porteuse brève ne l'entraîne pas), comme le squelch d'un poste :
+// ~RADIO_SQ_FLOOR_FALL_S, remonte en ~RADIO_SQ_FLOOR_RISE_S seulement squelch
+// fermé : une porteuse, brève ou permanente, ne l'entraîne pas), comme le
+// squelch d'un poste :
 //   seuil(niveau) = plancher + RADIO_SQ_L1_DB + (niveau - 1) × RADIO_SQ_STEP_DB
 //   (1 = +6 dB … 9 = +30 dB), hystérésis RADIO_SQ_HYST_DB à la fermeture,
 //   puis maintien AUDIO_GATE_HOLD_MS. Niveau 0 = AF permanent (données).

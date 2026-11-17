@@ -180,6 +180,25 @@ pastille « Décodeur : … » du bloc ÉTAT de l'accueil et du bandeau plein
 écran (menu Phonie / APRS / SSTV / POCSAG / ISM), en plus de RÉGLAGES.
 `--demo-saisie` ouvre la saisie du VFO A pour les captures.
 
+2026-11-11 : **S-mètre à l'échelle IARU** (fw 0.15). L'ancienne formule
+(RSSI + 135) / 6 donnait S13 à −56 dBm. Désormais, recommandation IARU
+Région 1 R.1 pour VHF/UHF : S9 = −93 dBm, 6 dB par point en dessous
+(S1 = −141 dBm), puis +10 dB par segment au-dessus (les 6 derniers
+segments = S9+10 à S9+60) ; −56 dBm s'affiche « S9+30 ». Le calcul est
+fait dans le firmware (`UvK5::sMeterOf`) et refait dans l'appli à partir
+de `rssi_dbm` (`MainViewModel.SUnits`), donc juste même avec un ancien
+firmware.
+
+2026-11-11 : **audio coupé après une minute de réception** (fw 0.15). Le
+plancher de bruit du squelch logiciel suivait le RSSI lissé même squelch
+ouvert : en 60 s de réception continue il rejoignait la porteuse, le seuil
+(plancher + 6 dB + 3 dB par niveau) passait au-dessus du signal et le flux
+audio se fermait ; changer de VFO faisait retomber le plancher sur le bruit
+en 3 s, d'où le contournement observé. Le plancher ne monte plus tant que
+le squelch est ouvert (il descend toujours) : une porteuse garde le squelch
+ouvert tant qu'elle est là, comme sur un poste. Console `d` : plancher et
+seuil courants.
+
 2026-11-10 (nuit) : **fiche station sur la carte**, façon aprs.fi. Un clic
 (ou un toucher) sur une épingle ouvre un panneau en bas de la carte :
 indicatif, dernière trame (heure, « il y a », source ESP / appli),

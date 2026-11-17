@@ -32,7 +32,7 @@ enum : uint8_t {
 };
 
 #define FW_MAJOR 0
-#define FW_MINOR 14
+#define FW_MINOR 15
 
 struct CtrlMsg {
     uint8_t len;
